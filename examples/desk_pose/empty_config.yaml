@@ -1,0 +1,232 @@
+# Args: <output_dir> <camera_pose_dir> <cctexture dir>
+{
+  "version": 3,
+  "setup": {
+    "blender_install_path": "/home_local/<env:USER>/blender/",
+    "pip": [
+      "h5py",
+      "scikit-image",
+      "pypng==0.0.20",
+      "scipy==1.2.2",
+      "matplotlib==2.2.4"
+    ]
+  },
+  "modules": [
+    # Output Path
+    {
+      "module": "main.Initializer",
+      "config": {
+        "global": {
+          "output_dir": "<args:0>"
+        }
+      }
+    },
+    # World Property
+    {
+      "module": "manipulators.WorldManipulator",
+      "config": {
+        "cf_set_world_category_id": 0,  # this sets the worlds background category id to 0
+        "use_nodes": False,
+        "color": [0.0, 0.0, 0.0]
+      }
+    },
+    #obj properties
+    {
+      "module": "manipulators.EntityManipulator",
+      "config": {
+        "selector": {
+          "provider": "getter.Entity",
+          "conditions": {
+            "cp_physics": True,
+            "type": "MESH"  # this guarantees that the object is a mesh, and not for example a camera
+          }
+        }
+      },
+    },
+    # Set table
+    {
+      "module": "constructor.BasicMeshInitializer",
+      "config": {
+        "meshes_to_add": [
+        {
+          "type": "plane",
+          "category_id": "333",
+          "name": "table",
+          "scale": [1, 1, 1]
+        }
+        ]
+      }
+    },
+    {
+      "module": "manipulators.EntityManipulator",
+      "config": {
+        "selector": {
+          "provider": "getter.Entity",
+          "conditions": {
+            "name": "table"
+          }
+        },
+        "cp_physics": False,
+        "cp_category_id": 0
+      }
+    },
+    # table material
+    {
+      "module": "loader.CCMaterialLoader",
+      "config": {
+        "folder_path": "<args:2>"
+      }
+    },
+    {
+      "module": "manipulators.EntityManipulator",
+      "config": {
+        "selector": {
+          "provider": "getter.Entity",
+          "conditions": {
+            "name": "table"
+          }
+        },
+        "mode": "once_for_all",
+        "cf_randomize_materials": {
+          "randomization_level": 1,
+          "materials_to_replace_with": {
+            "provider": "getter.Material",
+            "random_samples": 1,
+            "conditions": {
+              "cp_is_cc_texture": True,
+              "name": "DarkDesktop.*"
+            }
+          }
+        }
+      }
+    },
+    # Sampler
+    {
+      "module": "object.ObjectPoseSampler",
+      "config": {
+        "objects_to_sample": {
+          "provider": "getter.Entity",
+          "conditions": {
+            "cp_physics": True
+          }
+        },
+        "pos_sampler": {
+          "provider":"sampler.Uniform3d",
+          "min": [-0.2, -0.2, 0.0],
+          "max": [0.2, 0.2, 0.6]
+        },
+        "rot_sampler":{
+          "provider": "sampler.Uniform3d",
+          # "max": [-1.57,-1.57,0],
+          # "min": [1.57,1.57,6.28]
+          "max": [0,0,0],
+          "min": [0,0,0]
+        }
+      }
+    },
+    {
+      "module": "object.PhysicsPositioning",
+      "config": {
+        "min_simulation_time": 3,
+        "max_simulation_time": 10,
+        "check_object_interval": 1,
+        "solver_iters": 25,
+        "substeps_per_frame": 20,
+        "friction": 100.0,
+        "linear_damping": 0.99,
+        "angular_damping": 0.99
+      }
+    },
+    # Lights
+    {
+      "module": "lighting.LightSampler",
+      "config": {
+        "lights": [
+          {
+            "type": "POINT",
+            "location": [2, 2, 1],
+            "energy": 150
+          },
+          {
+            "type": "POINT",
+            "location": [-2, 2, 1],
+            "energy": 150
+          },
+          {
+            "type": "POINT",
+            "location": [2, -2, 1],
+            "energy": 150
+          },
+          {
+            "type": "POINT",
+            "location": [-2, -2, 1],
+            "energy": 150
+          },
+          {
+            "type": "POINT",
+            "location": [0, 0, 1],
+            "energy": 150
+          }
+        ]
+      }
+    },
+    # Camera
+    {
+      "module": "camera.CameraLoader",
+      "config": {
+        "path": "<args:1>",
+        "file_format": "location rotation/value",
+         "default_cam_param": {
+            "rotation": {
+                "format": "look_at",
+                "value": [0,0,0],
+                "inplane_rot": 0.0
+            }
+        },
+        "intrinsics": {
+          "resolution_x": 720,
+          "resolution_y": 720,
+          "cam_K": [894.469, 0.0, 369.322, 0.0, 895.121, 347.405, 0.0, 0.0, 1.0]
+        }
+      }
+    },
+    # RGB Renderer
+    {
+      "module": "renderer.RgbRenderer",
+      "config": {
+        "render_distance": True,
+        "output_key": "colors",
+        "cpu_threads": 8
+      }
+    },
+    # Segmentation
+    {
+      "module": "renderer.SegMapRenderer",
+      "config": {
+        "map_by": ["instance", "class"],
+        # "map_by": "class",
+        "default_values": {"class": 0}
+      }
+    },
+    # Coco annotation
+    {
+      "module": "writer.CocoAnnotationsWriter",
+      "config": {
+        "append_to_existing_output": True,
+      }
+    },
+    # BOP Writer
+    {
+      "module": "writer.BopWriter",
+      "config": {
+        "m2mm": True, # original bop annotations in mm (default)
+        "append_to_existing_output": True,
+        "postprocessing_modules": {
+          "distance": [
+            {"module": "postprocessing.Dist2Depth"}
+          ]
+        }
+      }
+    }
+  ]
+}
