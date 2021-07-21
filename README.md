@@ -12,4 +12,4 @@ $ cd examples/desk_pose/
 $ python3 config_generator.py 2 2
 ```
 
-The BOP data and COCO data are stored in "/Path/to/BlenderProc/examples/desk_pose/output"
+The BOP data and COCO data will be stored at "/Path/to/BlenderProc/examples/desk_pose/output"
