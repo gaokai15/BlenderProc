@@ -3,6 +3,7 @@ import os
 import itertools
 import random
 import sys
+import subprocess
 
 
 my_path = os.path.abspath(os.path.dirname(__file__))
@@ -70,30 +71,38 @@ def write_config(num_obj=10):
     template_f.close()
 
 
-def single_scene(sceneID, num_obj):
+def single_scene( num_obj):
     print( "renewing config")
     write_config(num_obj)
     run_file_path = os.path.dirname(os.path.dirname(my_path))
-    os.system("python "+os.path.join(run_file_path,"run.py") + " " +\
-        os.path.join(my_path, "config.yaml") +" "+\
-        os.path.join(my_path, "output") + " " +\
-        os.path.join(my_path, "camera_positions") + " "+\
-        os.path.join(run_file_path, "resources", "cctextures") +"\n")
+    output_location = os.path.join(my_path, "output")
+    cmd = ["python", os.path.join(run_file_path, "run.py")]
+    cmd.append(os.path.join(my_path, "config.yaml"))
+    cmd.append(output_location)
+    cmd.append(os.path.join(my_path, "camera_positions"))
+    cmd.append(os.path.join(run_file_path, "resources", "cctextures"))
+    print(" ".join(cmd))
+    # execute one BlenderProc run
+    subprocess.call(" ".join(cmd), shell=True)
 
 
 
-def main():
-    num_obj_options = []
-    for num in range(2,11):
-        num_obj_options += [num]*num
-    for sceneID in range(2):
-        num_obj = random.choice(num_obj_options)
+def main(numObjs, numScenes):
+    for sceneID in range(numScenes):
         print( "##############################")
-        print( "sceneID", sceneID, "num_obj", num_obj)
+        print( "sceneID", sceneID, "num_obj", numObjs)
         print( "##############################")
-        single_scene(sceneID, num_obj)
+        single_scene(numObjs)
 
 
 
 if __name__ == "__main__":
-    main()
+    if(len(sys.argv)>=2):
+        numObjs = int(sys.argv[1])
+    else:
+        numObjs = 10
+    if(len(sys.argv)>=3):
+        numScenes = int(sys.argv[2])
+    else:
+        numScenes = 1
+    main(numObjs, numScenes)
