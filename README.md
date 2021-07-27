@@ -9,7 +9,9 @@ This repository, forked from [BlenderProc](https://github.com/DLR-RM/BlenderProc
 ``` console
 $ python3 config_generator.py [number of objects in each scene] [number of scenes] [output directory]
 ```
+
 By default, the BOP data and COCO data will be stored at "/Path/to/BlenderProc/output"
+
 Example:
 ``` console
 $ python3 config_generator.py 2 2 ./temp/output
@@ -17,7 +19,7 @@ $ python3 config_generator.py 2 2 ./temp/output
 
 The files will be stored at "/Path/to/BlenderProc/temp/output".
 
-After the data is generated, the output folder structre is as below:
+After the data is generated, the output folder structure is as below:
 
 ```
 .
