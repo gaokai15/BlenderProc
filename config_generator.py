@@ -71,11 +71,11 @@ def write_config(num_obj=10):
     template_f.close()
 
 
-def single_scene( num_obj):
+def single_scene( num_obj, output_dir):
     print( "renewing config")
     write_config(num_obj)
-    run_file_path = os.path.dirname(os.path.dirname(my_path))
-    output_location = os.path.join(my_path, "output")
+    run_file_path = my_path
+    output_location = output_dir
     cmd = ["python", os.path.join(run_file_path, "run.py")]
     cmd.append(os.path.join(my_path, "config.yaml"))
     cmd.append(output_location)
@@ -87,12 +87,12 @@ def single_scene( num_obj):
 
 
 
-def main(numObjs, numScenes):
+def main(numObjs, numScenes, output_dir):
     for sceneID in range(numScenes):
         print( "##############################")
         print( "sceneID", sceneID, "num_obj", numObjs)
         print( "##############################")
-        single_scene(numObjs)
+        single_scene(numObjs, output_dir)
 
 
 
@@ -105,4 +105,11 @@ if __name__ == "__main__":
         numScenes = int(sys.argv[2])
     else:
         numScenes = 1
-    main(numObjs, numScenes)
+    if(len(sys.argv)>=4):
+        output_dir = sys.argv[3]
+    else:
+        output_dir = os.path.join(
+            os.path.dirname(__file__),
+            'output'
+        )
+    main(numObjs, numScenes, output_dir)
