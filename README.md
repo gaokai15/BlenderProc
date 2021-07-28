@@ -14,6 +14,7 @@ By default, the BOP data and COCO data will be stored at "/Path/to/BlenderProc/o
 
 Example:
 ``` console
+$ cd BlenderProc
 $ python3 config_generator.py 2 2 ./temp/output
 ```
 
